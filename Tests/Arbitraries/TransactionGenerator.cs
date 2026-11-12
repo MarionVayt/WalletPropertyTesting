@@ -1,9 +1,4 @@
 using FsCheck;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using FsCheck.Fluent;
 using WalletPropertyTesting.Domain;
 
@@ -11,14 +6,18 @@ namespace WalletPropertyTesting.Tests.Arbitraries
 {
     public static class TransactionGenerator
     {
-        // Транзакція = сума + тип (як VehicleGen будується з FuelTankGen):
-        // використайте MoneyGenerator.Money().Generator і Gen.Elements(TransactionType.Deposit, TransactionType.Withdraw).
-        // Конструктор Transaction закритий: створюйте через Transaction.Deposit(money) або Transaction.Withdraw(money).
+        // Транзакція = сума (з MoneyGenerator) + тип (Deposit / Withdraw).
+        // Конструктор Transaction закритий, тому створюємо через фабричні методи.
         public static Arbitrary<Transaction> Transaction()
         {
-            throw new NotImplementedException();
+            Gen<Transaction> gen =
+                from money in MoneyGenerator.Money().Generator
+                from type in Gen.Elements(TransactionType.Deposit, TransactionType.Withdraw)
+                select type == TransactionType.Deposit
+                    ? WalletPropertyTesting.Domain.Transaction.Deposit(money)
+                    : WalletPropertyTesting.Domain.Transaction.Withdraw(money);
 
+            return gen.ToArbitrary();
         }
     }
-
 }
